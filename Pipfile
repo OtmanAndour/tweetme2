@@ -4,10 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
+autopep8 = "*"
 
 [packages]
 django = "==2.2"
 djangorestframework = "*"
+pylint = "*"
+django-cors-headers = "*"
 
 [requires]
 python_version = "3.7"

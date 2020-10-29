@@ -1,13 +1,20 @@
-{% extends 'base.html' %} {% block head_title %} Tweetme2 {% endblock head_title %} 
+{% extends 'base.html' %} 
+
+{% block head_title %} 
+Tweetme2 
+{% endblock head_title %} 
+
 {% block content %}
 
-<div class="row text-center">
+<div class="row mb-3 text-center">
   <div class="col">
     <h2>Welcome to Tweetme 2</h2>
   </div>
 </div>
 
-<div class="row mb-4">
+<div id="tweetme-2"></div>
+
+<div class="row mb-4 d-none">
   <div class="col-md-4 mx-auto col-10">
     <form
       id="tweet-create-form"
@@ -29,11 +36,25 @@
   </div>
 </div>
 
-<div class="row" id="tweets">
-  Loading...
-</div>
+<div class="row d-none" id="tweets">Loading...</div>
 
 <script>
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === name + "=") {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
   function handleTweetFormError(msg, display) {
     var myErrorDiv = document.getElementById("tweet-create-form-error");
     if (display === true) {
@@ -83,13 +104,11 @@
         }
       } else if (xhr.status === 401) {
         alert("You must login!");
-        window.location.href = "/login"
-      }
-       else if (xhr.status === 403) {
+        window.location.href = "/login";
+      } else if (xhr.status === 403) {
         alert("You must login!");
-        window.location.href = "/login"
-      }
-        else if (xhr.status === 500) {
+        window.location.href = "/login";
+      } else if (xhr.status === 500) {
         alert("There was a server error. Please try again.");
       }
     };
@@ -123,16 +142,51 @@
     xhr.send();
   }
 
-  function handleDidLike(tweet_id, currentCount) {
+  function handleTweetActionBtn(tweet_id, currentCount, action) {
     currentCount++;
+    const csrftoken = getCookie("csrftoken");
     console.log(tweet_id, currentCount);
+    const url = "/api/tweets/action";
+    const method = "POST";
+    const data = JSON.stringify({
+      id: tweet_id,
+      action: action,
+    });
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.setRequestHeader("Content-type", "application/json");
+    xhr.setRequestHeader("HTTP_X_REQUESTED_WITH", "XMLHttpRequest");
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+    xhr.onload = function () {
+      loadTweets(tweetsElement)
+    };
+    xhr.send(data);
   }
 
   function likeBtn(tweet) {
     let button = document.createElement("button");
     button.className = "btn btn-primary";
-    button.setAttribute("onclick", `handleDidLike(${tweet.id},${tweet.likes})`);
+    button.setAttribute("onclick", `handleTweetActionBtn(${tweet.id},${tweet.likes},'like')`);
     let buttonText = document.createTextNode(`${tweet.likes} Likes`);
+    button.appendChild(buttonText);
+    return button;
+  }
+
+  function UnlikeBtn(tweet) {
+    let button = document.createElement("button");
+    button.className = "btn btn-outline-primary";
+    button.setAttribute("onclick", `handleTweetActionBtn(${tweet.id},${tweet.likes},'unlike')`);
+    let buttonText = document.createTextNode(`Unlike`);
+    button.appendChild(buttonText);
+    return button;
+  }
+
+  function RetweetBtn(tweet) {
+    let button = document.createElement("button");
+    button.className = "btn btn-outline-success";
+    button.setAttribute("onclick", `handleTweetActionBtn(${tweet.id},${tweet.likes},'retweet')`);
+    let buttonText = document.createTextNode(`Retweet`);
     button.appendChild(buttonText);
     return button;
   }
@@ -146,6 +200,9 @@
     p.appendChild(text);
     div.appendChild(p);
     div.appendChild(likeBtn(tweet));
+    div.appendChild(UnlikeBtn(tweet));
+    div.appendChild(RetweetBtn(tweet));
+
     return div;
   }
 
