@@ -12,3 +12,21 @@ After cloning it, go to the project with the command :
 ```
 cd tweetme2
 ```
+
+Create a virtual environment with : 
+```
+pipenv shell
+```
+
+and install the dependencies with : 
+
+```
+pipenv install
+```
+
+Then run the command : 
+```
+python manage.py runserver
+```
+
+And on your browser go to : localhost:8000
